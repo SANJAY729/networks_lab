@@ -9,6 +9,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <math.h>
+#define FILENAME "clientfile.txt" //change this to the name of file to be opened by the client
 void error(const char *);
 int main(int argc, char *argv[])
 {
@@ -18,9 +19,9 @@ int main(int argc, char *argv[])
    struct hostent *hp;
    char buffer[256];
    FILE *fp;
-   char* fname="clientfile.txt";
+   char* fname=FILENAME;
    
-   if (argc != 3) { printf("Usage: server port\n");
+   if (argc != 3) { printf("Please give the following arguments: localhost portno.\n");
                     exit(1);
    }
    sock= socket(AF_INET, SOCK_DGRAM, 0);
@@ -59,10 +60,10 @@ int main(int argc, char *argv[])
        if((fp=fopen(fname,"w"))==NULL){
            perror("fopen");
        }
-   }
+   }printf("\n");
    while(1){
    char word[100]="WORD";
-   char *num=(char*)malloc((int)((ceil(log10(i+1))+1)*sizeof(char)));printf("HI\n");
+   char *num=(char*)malloc((int)((ceil(log10(i+1))+1)*sizeof(char)));
    sprintf(num,"%d",i+1);  
    //printf("Please enter the message: ");
    bzero(buffer,256);
@@ -72,8 +73,9 @@ int main(int argc, char *argv[])
    if (n < 0) error("Sendto");
    n = recvfrom(sock,buffer,256,0,(struct sockaddr *)&from, &length);
    if (n < 0) error("recvfrom");
-   write(1,"Got an ack: ",12);printf("Ha\n");
-   fprintf(fp,buffer);printf("%s",buffer);
+   write(1,"Got an ack: ",12);
+   write(1,buffer,n);
+   fprintf(fp,buffer);
    if(strcmp(buffer,"END")==0){
        fclose(fp);
        break;

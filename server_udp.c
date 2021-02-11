@@ -46,15 +46,17 @@ int main(int argc, char *argv[])
  server.sin_family=AF_INET;
  server.sin_addr.s_addr=INADDR_ANY;
  server.sin_port=htons(atoi(argv[1]));
- if (bind(sock,(struct sockaddr *)&server,length)<0) 
-     error("binding");
+ if (bind(sock,(struct sockaddr *)&server,length)<0){
+     perror("binding");printf("\nTry using 'sudo'.\n");exit(0);
+ }
  fromlen = sizeof(struct sockaddr_in);
  bzero(buf,1024);
+ printf("Server running.... Expecting filename\n");
  n = recvfrom(sock,buf,1024,0,(struct sockaddr *)&from,&fromlen);
 
  if (n < 0) error("recvfrom");
- //write(1,"Received filename: ",21);
- //write(1,buf,n);printf("%s",buf);
+ write(1,"Received filename: ",21);
+ write(1,buf,n);//printf("%s",buf);
  buf[strlen(buf)-1]='\0';
  if( access( buf, F_OK ) == 0 ) {
     //printf("%s",buf);
@@ -93,17 +95,18 @@ int main(int argc, char *argv[])
   
  while (1) {
      bzero(buf,1024);
+     printf("\nExpecting client message....\n");
      n = recvfrom(sock,buf,1024,0,(struct sockaddr *)&from,&fromlen);
      if (n < 0) error("recvfrom");
      write(1,"Received a datagram: ",21);
-     //write(1,buf,n);
+     write(1,buf,n);
      int i=0;
      
      if(strncmp(buf,word,4)==0){
       
       mes=lines[atoi(buf+4)-1];
       
-      printf("%d %s\n",atoi(buf+4)-1,mes);
+      //printf("%d %s\n",atoi(buf+4)-1,mes);
       n = sendto(sock,mes,strlen(mes),
                 0,(struct sockaddr *)&from,fromlen);
       if (n  < 0) error("sendto");
