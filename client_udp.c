@@ -75,11 +75,11 @@ int main(int argc, char *argv[])
    if (n < 0) error("recvfrom");
    write(1,"Got an ack: ",12);
    write(1,buffer,n);
-   fprintf(fp,buffer);
+   
    if(strcmp(buffer,"END")==0){
        fclose(fp);
        break;
-   }i++;   
+   }fprintf(fp,buffer);i++;   
    }
    close(sock);
    return 0;
