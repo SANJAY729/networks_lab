@@ -104,7 +104,7 @@ int main(int argc, char *argv[])
      
      if(strncmp(buf,word,4)==0){
       
-      mes=lines[atoi(buf+4)-1];
+      mes=lines[atoi(buf+4)];
       
       //printf("%d %s\n",atoi(buf+4)-1,mes);
       n = sendto(sock,mes,strlen(mes),
