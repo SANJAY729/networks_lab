@@ -24,7 +24,7 @@ int main(int argc, char *argv[])
      struct sockaddr_in serv_addr, cli_addr;
      int n;
      if (argc < 2) {
-         fprintf(stderr,"ERROR, no port provided\n");
+         printf("ERROR, no port provided\n");
          exit(1);
      }
      sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
      serv_addr.sin_port = htons(portno);
      if (bind(sockfd, (struct sockaddr *) &serv_addr,
               sizeof(serv_addr)) < 0) 
-              error("ERROR on binding");
+             { perror("binding");printf("\nTry using 'sudo'.\n");exit(0);}
      listen(sockfd,5);
      clilen = sizeof(cli_addr);
      printf("Server Started!\n");
@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
         if (newsockfd < 0) 
             error("ERROR on accept");
         bzero(buffer,100);
-        n = read(newsockfd,buffer,100);
+        n = recv(newsockfd,buffer,100,MSG_BATCH);
         if (n < 0) error("ERROR reading from socket");
         printf("Expecting Filename ....\n");
         //printf("%s\n",buffer);
@@ -60,9 +60,9 @@ int main(int argc, char *argv[])
             }bzero(buffer,100);
             printf("Sending file data ......");
             while((n=read(fd,buffer,99))>0){
-                // printf("%d\n",n);
+                //printf("ALLO\n");
                 // write(1,buffer,n);
-                n = write(newsockfd,buffer,n);
+                n = send(newsockfd,buffer,n,MSG_BATCH);
                 if (n < 0) error("ERROR writing to socket");
                 bzero(buffer,100);
             }

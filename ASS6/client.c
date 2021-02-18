@@ -7,6 +7,7 @@
 #include <netinet/in.h>
 #include <netdb.h> 
 #include <fcntl.h>
+#include <poll.h>
 #define CFNAME "output.txt"
 void error(const char *msg)
 {
@@ -52,11 +53,10 @@ int main(int argc, char *argv[])
     struct hostent *server;
     char prev;
 
-    char buffer[256];
-    if (argc < 3) {
-       fprintf(stderr,"usage %s hostname port\n", argv[0]);
-       exit(0);
-    }
+    char buffer[50];
+    if (argc != 3) { printf("Please give the following arguments: localhost portno.\n");
+                    exit(1);
+   }
     portno = atoi(argv[2]);
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0) 
@@ -75,13 +75,20 @@ int main(int argc, char *argv[])
     if (connect(sockfd,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0) 
         error("ERROR connecting");
     printf("Please enter filename: ");
-    bzero(buffer,256);
-    fgets(buffer,255,stdin);
-    n = write(sockfd,buffer,strlen(buffer));
+    bzero(buffer,50);
+    fgets(buffer,49,stdin);
+    n = send(sockfd,buffer,strlen(buffer),MSG_BATCH);
     if (n < 0) 
          error("ERROR writing to socket");
-    bzero(buffer,256);
-    n = read(sockfd,buffer,255);
+    bzero(buffer,50);
+    struct pollfd sfd;
+    sfd.fd=sockfd;
+    sfd.events = POLLHUP;
+    sfd.revents = 0;
+    
+    n = poll(&sfd,1,1);
+    printf("%d\n",sfd.revents & POLLHUP);
+    n = recv(sockfd,buffer,49,MSG_BATCH);
     if(n==0){
         printf("ERR 01: File Not Found");exit(0);
     }
@@ -92,15 +99,16 @@ int main(int argc, char *argv[])
     n = write(fd,buffer,n);
 
     if (n < 0) error("ERROR writing to socket");
-    bzero(buffer,255);
+    bzero(buffer,49);
     
-    while((n = read(sockfd,buffer,255))>0){
+    while((n = recv(sockfd,buffer,49,MSG_BATCH))>0){
         // printf("%d\n",n);
         // write(1,buffer,n);
+        //printf("ALLO\n");
         cw+=countWords(buffer,n,prev);cb+=n;prev = buffer[n-1];
         n = write(fd,buffer,n);
         if (n < 0) error("ERROR writing to socket");
-        bzero(buffer,255);
+        bzero(buffer,49);
     }
     printf("The file transfer is successful. Size of the file = %d bytes, no. of words = %d",cb,cw);
     // if (n < 0) 
