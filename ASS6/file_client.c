@@ -82,16 +82,16 @@ int main(int argc, char *argv[])
     n = send(sockfd,buffer,strlen(buffer),0);
     if (n < 0) 
          error("ERROR writing to socket");
-    bzero(buffer,MAX_BYTES);
-    n = recv(sockfd,buffer,MAX_BYTES-1,0);
+    n = recv(sockfd,buffer,1,0);
+    bzero(buffer,MAX_BYTES-1);
     if(n==0){
         printf("ERR 01: File Not Found");exit(0);
     }
     else{
-        fd=open(CFNAME,O_WRONLY | O_TRUNC | O_CREAT, S_IRUSR | S_IRGRP | S_IWGRP | S_IWUSR);cb--;
+        fd=open(CFNAME,O_WRONLY | O_TRUNC | O_CREAT, S_IRUSR | S_IRGRP | S_IWGRP | S_IWUSR);
     }
-    cw+=countWords(buffer,n,' ');cb+=n;prev = buffer[n-1];
-    n = write(fd,buffer,n);
+    // cw+=countWords(buffer,n,' ');cb+=n;prev = buffer[n-1];
+    // n = write(fd,buffer,n);
 
     if (n < 0) error("ERROR writing to socket");
     bzero(buffer,MAX_BYTES-1);
