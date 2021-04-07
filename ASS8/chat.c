@@ -41,6 +41,8 @@ int parse(char* buf,int n,char* dst, char* msg,int cr){
 
 int main(int argc, char const *argv[])
 {
+	
+    int sel_ret;
     fd_set master;    // master file descriptor list
     fd_set read_fds;  // temp file descriptor list for select()
     int fdmax;        // maximum file descriptor number
@@ -114,13 +116,20 @@ int main(int argc, char const *argv[])
 
     // keep track of the biggest file descriptor
     fdmax = listener; // so far, it's this one
-    printf("%d\n",listener);
+    //printf("%d\n",listener);
     // main loop
     for(;;) {
+		struct timeval tv;
+	    tv.tv_sec = 60;//timeout after 60 sec
+	    tv.tv_usec = 0;
         read_fds = master; // copy it
-        if (select(fdmax+1, &read_fds, NULL, NULL, NULL) == -1) {
+        sel_ret = select(fdmax+1, &read_fds, NULL, NULL, &tv);
+        if ( sel_ret== -1) {
             perror("select");
             exit(4);
+        }
+        else if (sel_ret == 0){
+        	printf("Timeout !\n");exit(0);
         }
 
         // run through the existing connections looking for data to read
@@ -168,7 +177,7 @@ int main(int argc, char const *argv[])
                                 perror("recv");
                             }
                             
-                            close(i); // bye!
+                            close(i); // bye!	
                             
                             FD_CLR(i, &master); // remove from master set
                         } else {
@@ -227,14 +236,14 @@ int main(int argc, char const *argv[])
                                     server->h_length);
                                 serv_addr.sin_port = htons(portno);
                                 if (connect(sock_fd,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0) 
-                                    {perror("ERROR connecting");exit(0);}
+                                    {printf("ERROR connecting to User %d",u);continue;}
                                 user[u]=listener;
                                 user_fd[u]=sock_fd;
                                 FD_SET(sock_fd, &master); // add to master set
                                 if (sock_fd > fdmax) {    // keep track of the max
                                     fdmax = sock_fd;
                                 }
-                                send(user_fd[u],msg,nbytes,0);printf("NEW\n");
+                                send(user_fd[u],msg,nbytes,0);printf("NEW Connection to User %d\n",u);
                             }
                         }
                     }
@@ -245,3 +254,4 @@ int main(int argc, char const *argv[])
     
     return 0;
 }
+
